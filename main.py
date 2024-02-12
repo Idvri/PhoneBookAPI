@@ -1,10 +1,10 @@
-from src.utils import hello, get_choice, add_new_profile
+from src import hello, get_choice, add_new_profile, get_profiles_with_pagination, edit_profile
 
 CHOICES = {
     1: add_new_profile,
-    2: 'Редактировать запись в справочнике.',
-    3: 'Вывести записи из справочника.',
-    4: 'Выйти',
+    2: edit_profile,
+    3: get_profiles_with_pagination,
+    4: 'exit',
 }
 
 
@@ -14,7 +14,13 @@ def main() -> None:
     hello()
 
     while True:
-        CHOICES[get_choice()]()
+        try:
+            CHOICES[get_choice()]()
+        except KeyError:
+            print('\nВы указали неверный вариант. Попробуйте ещё раз!\n')
+        except TypeError:
+            print('\nХорошего дня!\n')
+            break
 
 
 if __name__ == '__main__':
