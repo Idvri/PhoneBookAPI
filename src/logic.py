@@ -11,7 +11,7 @@ def get_choice() -> Any:
 
     str_choices = '1. Добавление новой записи в справочник;\n2. Редактировать запись в справочнике;\n' \
                   '3. Вывести записи из справочника;\n4. Поиск записей; \n5. Выйти.\n'
-    choice = int(input(f'Выберите, что хотите сделать (укажите цифру):\n{str_choices}\nВаш выбор: '))
+    choice = input(f'Выберите, что хотите сделать (укажите цифру):\n{str_choices}\nВаш выбор: ')
 
     if choice == '1':
         return add_new_profile(), True
@@ -23,8 +23,8 @@ def get_choice() -> Any:
         return to_find(), True
     elif choice == '5':
         return main_exit(), False
-
-    return print('\nВы указали неверный вариант. Попробуйте ещё раз!\n'), True
+    else:
+        return print('\nВы указали неверный вариант. Попробуйте ещё раз!\n'), True
 
 
 def get_profiles_with_pagination(
@@ -148,6 +148,10 @@ def edit_profile() -> Any:
 
 def to_find() -> dict | None:
     """Функция описывающая логику для поиска записей."""
+
+    profiles = get_profiles()
+    if profiles is None:
+        return print('\nНет записей для поиска.\n')
 
     choice = input('\nПо каким данным будет производиться поиск (имя или личный номер): ').lower()
     if choice == 'имя':
