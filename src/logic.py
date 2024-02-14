@@ -1,32 +1,52 @@
 import re
+from typing import Any
 
-from src.models import Profile
-from src.utils import get_profiles, save_data
+from .models import Profile
+from .strategy import Context, Name, Number
+from .utils import get_profiles, main_exit, save_data
 
 
-def get_choice() -> int:
+def get_choice() -> Any:
     """Функция, описывающая логику для получения выбора пользователя."""
 
     str_choices = '1. Добавление новой записи в справочник;\n2. Редактировать запись в справочнике;\n' \
-                  '3. Вывести записи из справочника;\n4. Выйти.\n'
+                  '3. Вывести записи из справочника;\n4. Поиск записей; \n5. Выйти.\n'
     choice = int(input(f'Выберите, что хотите сделать (укажите цифру):\n{str_choices}\nВаш выбор: '))
-    return choice
+
+    if choice == '1':
+        return add_new_profile(), True
+    elif choice == '2':
+        return edit_profile(), True
+    elif choice == '3':
+        return get_profiles_with_pagination(), True
+    elif choice == '4':
+        return to_find(), True
+    elif choice == '5':
+        return main_exit(), False
+
+    return print('\nВы указали неверный вариант. Попробуйте ещё раз!\n'), True
 
 
-def get_profiles_with_pagination(profiles: list[Profile] = None, paginator: int = None) -> None:
+def get_profiles_with_pagination(
+        profiles: list[Profile] | None = None, paginator: int = 0, from_found: bool = False
+) -> Any:
     """Функция, описывающая логику для вывода строк из справочника."""
 
-    if not profiles:
+    if not profiles and not from_found:
         profiles = get_profiles()
         if not profiles:
             return print('\nНет записей.\n')
-    if not paginator:
-        paginator = int(input('\nВведите сколько записей должно быть отображено за раз. '
-                              '\nВаш выбор: '))
+    elif not profiles and from_found:
+        return print('\nНет записей.\n')
 
-    for profile in profiles[:paginator]:
-        print(profile)
-        profiles.remove(profile)
+    if paginator == 0:
+        paginator = int(input('\nВведите сколько записей должно быть отображено за раз. '
+                              '\nВаш выбор (число): '))
+
+    if isinstance(profiles, list):
+        for profile in profiles[:paginator]:
+            print(profile)
+            profiles.remove(profile)
 
     if profiles:
         choice = input('\nДалее? Ваш ответ (да или нет): ')
@@ -36,7 +56,7 @@ def get_profiles_with_pagination(profiles: list[Profile] = None, paginator: int 
         print('\nВсе записи выведены.\n')
 
 
-def add_new_profile() -> None:
+def add_new_profile() -> Any:
     """Функция, описывающая логику для создания новой записи."""
 
     profiles = get_profiles()
@@ -45,8 +65,8 @@ def add_new_profile() -> None:
         name=input('Введите ваше имя: ').title(),
         last_name=input('Введите ваше отчество: ').title(),
         organization=input('Введите вашу компанию: ').upper(),
-        work_number=int(input('Введите ваш рабочий номер: ')),
-        number=int(input('Введите ваш личный номер: ')),
+        work_number=input('Введите ваш рабочий номер: '),
+        number=input('Введите ваш личный номер: '),
     )
 
     data_check = new_profile.validate()
@@ -56,8 +76,9 @@ def add_new_profile() -> None:
     if profiles:
         fail = [
             profile for profile in profiles
-            if str(profile.number) == str(new_profile.number)
-            or str(profile.work_number) == str(new_profile.work_number)
+            if str(profile.number) == str(new_profile.number) or str(profile.work_number) == str(
+                new_profile.work_number
+            )
         ]
         if fail:
             return print(f'\nЗапись с таким личным или рабочим номером уже существует:\n{fail[0].__str__()}\n')
@@ -69,7 +90,7 @@ def add_new_profile() -> None:
     print('\nЗапись добавлена!\n')
 
 
-def edit_profile() -> None:
+def edit_profile() -> Any:
     """Функция, описывающая логику для редактирования записей."""
 
     profiles = get_profiles()
@@ -84,7 +105,7 @@ def edit_profile() -> None:
     if not profile:
         return print('\nНет контактов с указанным личным номером.')
 
-    choice = input(f'\n{profile}\nЧто вы хотите изменить (фамилия, имя, отчество, компания, рабочий номер, '
+    choice = input(f'\n{profile}\nЧто вы хотите изменить (фамилия, имя, отчество, организация, рабочий номер, '
                    f'личный номер): ').lower()
     if choice == 'фамилия':
         profile.surname = input('\nВведите новое значение: ')
@@ -107,19 +128,40 @@ def edit_profile() -> None:
         if isinstance(data_check, dict):
             return print(data_check['error'])
     elif choice == 'рабочий номер':
-        profile.work_number = input('\nВведите новое значение: ')
+        profile.work_number = int(input('\nВведите новое значение: '))
         data_check = profile.validate()
         if isinstance(data_check, dict):
             return print(data_check['error'])
     elif choice == 'личный номер':
-        profile.number = input('\nВведите новое значение: ')
+        profile.number = int(input('\nВведите новое значение: '))
         data_check = profile.validate()
         if isinstance(data_check, dict):
             return print(data_check['error'])
+    else:
+        print('\nУказан неверный вариант!')
 
     replace_index = profiles.index(profile)
     profiles[replace_index] = profile
     save_data(profiles)
-    print(f'\nДанные изменены:\n{profile}\n')
+    return print(f'\nДанные изменены:\n{profile}\n')
 
 
+def to_find() -> dict | None:
+    """Функция описывающая логику для поиска записей."""
+
+    choice = input('\nПо каким данным будет производиться поиск (имя или личный номер): ').lower()
+    if choice == 'имя':
+        context = Context(Name())
+        name = input('\nВведите имя для поиска: ')
+        found = context.find(name)
+        if isinstance(found, dict):
+            return print(found['error'])
+    elif choice == 'номер' or choice == 'личный номер':
+        context = Context(Number())
+        number = input('\nВведите номер для поиска: ')
+        found = context.find(number)
+        if isinstance(found, dict):
+            return print(found['error'])
+    else:
+        return print('\nБыл указан некорректный вариант!\n')
+    return None

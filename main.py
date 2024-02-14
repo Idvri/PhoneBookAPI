@@ -1,26 +1,14 @@
-from src import hello, get_choice, add_new_profile, get_profiles_with_pagination, edit_profile
-
-CHOICES = {
-    1: add_new_profile,
-    2: edit_profile,
-    3: get_profiles_with_pagination,
-    4: 'exit',
-}
+from src import get_choice, hello
 
 
 def main() -> None:
     """Основной 'движок' программы."""
 
     hello()
+    process = True
 
-    while True:
-        try:
-            CHOICES[get_choice()]()
-        except KeyError:
-            print('\nВы указали неверный вариант. Попробуйте ещё раз!\n')
-        except TypeError:
-            print('\nХорошего дня!\n')
-            break
+    while process:
+        choice, process = get_choice()
 
 
 if __name__ == '__main__':

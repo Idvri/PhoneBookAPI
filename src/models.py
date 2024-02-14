@@ -1,5 +1,6 @@
 import re
 
+
 class Profile:
 
     def __init__(
@@ -8,15 +9,15 @@ class Profile:
             name: str,
             last_name: str,
             organization: str,
-            work_number: int,
-            number: int,
+            work_number: str,
+            number: str,
     ) -> None:
         self.surname = surname
         self.name = name
         self.last_name = last_name
         self.organization = organization
-        self.work_number = work_number
-        self.number = number
+        self.work_number = int(work_number)
+        self.number = int(number)
 
     def __str__(self) -> str:
         return f'{self.surname}, {self.name}, {self.last_name}, {self.organization}, {self.work_number}, {self.number}'

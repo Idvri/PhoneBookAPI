@@ -1,21 +1,34 @@
+from typing import Any
+
 from .models import Profile
 
 
-def hello() -> None:
+def hello() -> Any:
     """Функция для приветствия."""
 
-    print('Добрый день!\n')
+    return print('Добрый день!\n')
+
+
+def main_exit() -> Any:
+    """Функция для выхода"""
+
+    return print('\nХорошего дня!\n')
 
 
 def get_profiles() -> list[Profile] | None:
     """Функция для получения данных из файла."""
 
-    with open('src/data.txt', 'r', encoding='utf-8') as data:
-        nums = data.read()
-        if nums:
-            nums = nums.split('\n')
-            nums = [Profile(*num.split(', ')) for num in nums[:-1]]
-            return nums
+    try:
+        with open('src/data.txt', encoding='utf-8') as data:
+            nums = data.read()
+            if nums:
+                nums_list = nums.split('\n')
+                if nums_list[-1] != '':
+                    nums_list.append('')
+                list_nums = [Profile(*num.split(', ')) for num in nums_list[:-1]]
+                return list_nums
+            return None
+    except FileNotFoundError:
         return None
 
 
