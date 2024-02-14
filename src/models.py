@@ -16,8 +16,8 @@ class Profile:
         self.name = name
         self.last_name = last_name
         self.organization = organization
-        self.work_number = int(work_number)
-        self.number = int(number)
+        self.work_number = work_number
+        self.number = number
 
     def __str__(self) -> str:
         return f'{self.surname}, {self.name}, {self.last_name}, {self.organization}, {self.work_number}, {self.number}'
@@ -37,10 +37,10 @@ class Profile:
             return {'status': False, 'error': error}
 
         pattern = re.compile(r'^\d{11}$')
-        if not pattern.match(str(self.work_number)):
+        if not pattern.match(self.work_number):
             error = '\nРабочий номер заполнен некорректно!\n'
             return {'status': False, 'error': error}
-        elif not pattern.match(str(self.number)):
+        elif not pattern.match(self.number):
             error = '\nЛичный номер заполнен некорректно!\n'
             return {'status': False, 'error': error}
 

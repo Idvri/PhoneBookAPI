@@ -3,7 +3,7 @@ from typing import Any
 
 from .models import Profile
 from .strategy import Context, Name, Number
-from .utils import get_profiles, main_exit, save_data
+from .utils import edited_data_checking, get_profiles, main_exit, save_data
 
 
 def get_choice() -> Any:
@@ -40,8 +40,11 @@ def get_profiles_with_pagination(
         return print('\nНет записей.\n')
 
     if paginator == 0:
-        paginator = int(input('\nВведите сколько записей должно быть отображено за раз. '
-                              '\nВаш выбор (число): '))
+        try:
+            paginator = int(input('\nВведите сколько записей должно быть отображено за раз. '
+                                  '\nВаш выбор (число): '))
+        except ValueError:
+            return print('\nНужно ввести кол-во выводимых строк в виде числа.\n')
 
     if isinstance(profiles, list):
         for profile in profiles[:paginator]:
@@ -50,8 +53,10 @@ def get_profiles_with_pagination(
 
     if profiles:
         choice = input('\nДалее? Ваш ответ (да или нет): ')
-        if choice == 'да':
+        if choice == 'да' or choice == '':
             get_profiles_with_pagination(profiles=profiles, paginator=paginator)
+        else:
+            print('\nВозвращаемся к главному меню.\n')
     else:
         print('\nВсе записи выведены.\n')
 
@@ -60,20 +65,29 @@ def add_new_profile() -> Any:
     """Функция, описывающая логику для создания новой записи."""
 
     profiles = get_profiles()
-    new_profile = Profile(
-        surname=input('\nВведите вашу фамилию: ').title(),
-        name=input('Введите ваше имя: ').title(),
-        last_name=input('Введите ваше отчество: ').title(),
-        organization=input('Введите вашу компанию: ').upper(),
-        work_number=input('Введите ваш рабочий номер: '),
-        number=input('Введите ваш личный номер: '),
-    )
+    counter = 3
+    new_profile = None
+    checker = False
+    while counter > 0:
+        counter -= 1
+        new_profile = Profile(
+            surname=input('\nВведите вашу фамилию: ').title(),
+            name=input('Введите ваше имя: ').title(),
+            last_name=input('Введите ваше отчество: ').title(),
+            organization=input('Введите вашу компанию: ').upper(),
+            work_number=input('Введите ваш рабочий номер: '),
+            number=input('Введите ваш личный номер: '),
+        )
+        checker = edited_data_checking(new_profile)
+        if not checker and counter > 0:
+            print('Попробуйте ещё раз корректно ввести данные.')
+            continue
+        break
 
-    data_check = new_profile.validate()
-    if isinstance(data_check, dict):
-        return print(data_check['error'])
+    if not checker:
+        return print('Попытки для корректного ввода данных были исчерпаны!\n')
 
-    if profiles:
+    if profiles and isinstance(new_profile, Profile):
         fail = [
             profile for profile in profiles
             if str(profile.number) == str(new_profile.number) or str(profile.work_number) == str(
@@ -83,10 +97,11 @@ def add_new_profile() -> Any:
         if fail:
             return print(f'\nЗапись с таким личным или рабочим номером уже существует:\n{fail[0].__str__()}\n')
         profiles.append(new_profile)
-    else:
+        save_data(profiles)
+    elif not profiles and isinstance(new_profile, Profile):
         profiles = [new_profile]
+        save_data(profiles)
 
-    save_data(profiles)
     print('\nЗапись добавлена!\n')
 
 
@@ -108,35 +123,89 @@ def edit_profile() -> Any:
     choice = input(f'\n{profile}\nЧто вы хотите изменить (фамилия, имя, отчество, организация, рабочий номер, '
                    f'личный номер): ').lower()
     if choice == 'фамилия':
-        profile.surname = input('\nВведите новое значение: ')
-        data_check = profile.validate()
-        if isinstance(data_check, dict):
-            return print(data_check['error'])
+        counter = 3
+        while counter > 0:
+            counter -= 1
+            if counter >= 2:
+                profile.surname = input('\nВведите новое значение: ')
+            else:
+                profile.surname = input('Введите новое значение: ')
+            checker = edited_data_checking(profile)
+            if counter == 0 and not checker:
+                return print('Вы истратили кол-во попыток для изменения данных!\n')
+            elif counter > 0 and not checker:
+                continue
+            break
     elif choice == 'имя':
-        profile.name = input('\nВведите новое значение: ')
-        data_check = profile.validate()
-        if isinstance(data_check, dict):
-            return print(data_check['error'])
+        counter = 3
+        while counter > 0:
+            counter -= 1
+            if counter >= 2:
+                profile.name = input('\nВведите новое значение: ')
+            else:
+                profile.name = input('Введите новое значение: ')
+            checker = edited_data_checking(profile)
+            if counter == 0 and not checker:
+                return print('Вы истратили кол-во попыток для изменения данных!\n')
+            elif counter > 0 and not checker:
+                continue
+            break
     elif choice == 'отчество':
-        profile.last_name = input('\nВведите новое значение: ')
-        data_check = profile.validate()
-        if isinstance(data_check, dict):
-            return print(data_check['error'])
+        counter = 3
+        while counter > 0:
+            counter -= 1
+            if counter >= 2:
+                profile.last_name = input('\nВведите новое значение: ')
+            else:
+                profile.last_name = input('Введите новое значение: ')
+            checker = edited_data_checking(profile)
+            if counter == 0 and not checker:
+                return print('Вы истратили кол-во попыток для изменения данных!\n')
+            elif counter > 0 and not checker:
+                continue
+            break
     elif choice == 'организация':
-        profile.organization = input('\nВведите новое значение: ')
-        data_check = profile.validate()
-        if isinstance(data_check, dict):
-            return print(data_check['error'])
+        counter = 3
+        while counter > 0:
+            counter -= 1
+            if counter >= 2:
+                profile.organization = input('\nВведите новое значение: ')
+            else:
+                profile.organization = input('Введите новое значение: ')
+            checker = edited_data_checking(profile)
+            if counter == 0 and not checker:
+                return print('Вы истратили кол-во попыток для изменения данных!\n')
+            elif counter > 0 and not checker:
+                continue
+            break
     elif choice == 'рабочий номер':
-        profile.work_number = int(input('\nВведите новое значение: '))
-        data_check = profile.validate()
-        if isinstance(data_check, dict):
-            return print(data_check['error'])
+        counter = 3
+        while counter > 0:
+            counter -= 1
+            if counter >= 2:
+                profile.work_number = input('\nВведите новое значение: ')
+            else:
+                profile.work_number = input('Введите новое значение: ')
+            checker = edited_data_checking(profile)
+            if counter == 0 and not checker:
+                return print('Вы истратили кол-во попыток для изменения данных!\n')
+            elif counter > 0 and not checker:
+                continue
+            break
     elif choice == 'личный номер':
-        profile.number = int(input('\nВведите новое значение: '))
-        data_check = profile.validate()
-        if isinstance(data_check, dict):
-            return print(data_check['error'])
+        counter = 3
+        while counter > 0:
+            counter -= 1
+            if counter >= 2:
+                profile.number = input('\nВведите новое значение: ')
+            else:
+                profile.number = input('Введите новое значение: ')
+            checker = edited_data_checking(profile)
+            if counter == 0 and not checker:
+                return print('Вы истратили кол-во попыток для изменения данных!\n')
+            elif counter > 0 and not checker:
+                continue
+            break
     else:
         print('\nУказан неверный вариант!')
 

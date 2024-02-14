@@ -46,3 +46,11 @@ def save_data(profiles: list[Profile]) -> None:
 
     with open('src/data.txt', 'w', encoding='utf-8') as data:
         data.write(get_list_to_str(profiles))
+
+
+def edited_data_checking(profile: Profile) -> Any:
+    data_check = profile.validate()
+    if isinstance(data_check, dict):
+        print(data_check['error'])
+        return False
+    return True
