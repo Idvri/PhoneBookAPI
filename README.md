@@ -7,7 +7,7 @@
 - RegExp.
 
 ### Установка и запуск (команды, локально):
-- git clone https://github.com/Idvri/PhoneBook.git - загружаем реп. с программой;
+- git clone https://github.com/Idvri/Phone_Book.git - загружаем реп. с программой;
 - python -m venv env - создаём вирт. окружение;
 - env/Scripts/activate (Linux: source env/bin/activate) - запускаем вирт. окружение;
 - pip install -r requirements.txt - устанавливаем зависимости;
