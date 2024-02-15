@@ -1,9 +1,9 @@
-import re
 from typing import Any
 
-from .models import Profile
-from .strategy import Context, Name, Number
-from .utils import edited_data_checking, get_profiles, main_exit, save_data
+import src
+
+from .models import PATTERNS, Profile
+from .utils import check_data, get_checked_value, get_exit, get_profiles, save_data
 
 
 def get_choice() -> Any:
@@ -14,15 +14,15 @@ def get_choice() -> Any:
     choice = input(f'Выберите, что хотите сделать (укажите цифру):\n{str_choices}\nВаш выбор: ')
 
     if choice == '1':
-        return add_new_profile(), True
+        return add_profile(), True
     elif choice == '2':
         return edit_profile(), True
     elif choice == '3':
         return get_profiles_with_pagination(), True
     elif choice == '4':
-        return to_find(), True
+        return find_profile(), True
     elif choice == '5':
-        return main_exit(), False
+        return get_exit(), False
     else:
         return print('\nВы указали неверный вариант. Попробуйте ещё раз!\n'), True
 
@@ -61,7 +61,7 @@ def get_profiles_with_pagination(
         print('\nВсе записи выведены.\n')
 
 
-def add_new_profile() -> Any:
+def add_profile() -> Any:
     """Функция, описывающая логику для создания новой записи."""
 
     profiles = get_profiles()
@@ -78,7 +78,7 @@ def add_new_profile() -> Any:
             work_number=input('Введите ваш рабочий номер: '),
             number=input('Введите ваш личный номер: '),
         )
-        checker = edited_data_checking(new_profile)
+        checker = check_data(new_profile)
         if not checker and counter > 0:
             print('Попробуйте ещё раз корректно ввести данные.')
             continue
@@ -112,100 +112,51 @@ def edit_profile() -> Any:
     if not profiles:
         return print('\nНет записей для редактирования.\n')
 
-    number = int(input('Укажите, пожалуйста, личный номер телефона контакта, \nкоторый вы хотите редактировать: '))
-    pattern = re.compile(r'^\d{11}$')
-    if not pattern.match(str(number)):
+    number = input('Укажите, пожалуйста, личный номер телефона контакта, \nкоторый вы хотите редактировать: ')
+    pattern = PATTERNS['numbers']
+    if not pattern.match(number):
         return print('\nУказан некорректный номер!\n')
-    profile = [profile for profile in profiles if str(profile.number) == str(number)][0]
-    if not profile:
-        return print('\nНет контактов с указанным личным номером.')
+    profiles_list = [profile for profile in profiles if str(profile.number) == number]
+    if len(profiles_list) > 0:
+        profile = profiles_list[0]
+    else:
+        return print('\nНет контактов с таким личным номером.\n')
 
     choice = input(f'\n{profile}\nЧто вы хотите изменить (фамилия, имя, отчество, организация, рабочий номер, '
                    f'личный номер): ').lower()
+
     if choice == 'фамилия':
-        counter = 3
-        while counter > 0:
-            counter -= 1
-            if counter >= 2:
-                profile.surname = input('\nВведите новое значение: ')
-            else:
-                profile.surname = input('Введите новое значение: ')
-            checker = edited_data_checking(profile)
-            if counter == 0 and not checker:
-                return print('Вы истратили кол-во попыток для изменения данных!\n')
-            elif counter > 0 and not checker:
-                continue
-            break
+        value, status = get_checked_value(PATTERNS['strings'], profile.surname)
+        if status:
+            profile.surname = value
+        else:
+            return print(value)
     elif choice == 'имя':
-        counter = 3
-        while counter > 0:
-            counter -= 1
-            if counter >= 2:
-                profile.name = input('\nВведите новое значение: ')
-            else:
-                profile.name = input('Введите новое значение: ')
-            checker = edited_data_checking(profile)
-            if counter == 0 and not checker:
-                return print('Вы истратили кол-во попыток для изменения данных!\n')
-            elif counter > 0 and not checker:
-                continue
-            break
+        value, status = get_checked_value(PATTERNS['strings'], profile.name)
+        if status:
+            profile.name = value
+        else:
+            return print(value)
     elif choice == 'отчество':
-        counter = 3
-        while counter > 0:
-            counter -= 1
-            if counter >= 2:
-                profile.last_name = input('\nВведите новое значение: ')
-            else:
-                profile.last_name = input('Введите новое значение: ')
-            checker = edited_data_checking(profile)
-            if counter == 0 and not checker:
-                return print('Вы истратили кол-во попыток для изменения данных!\n')
-            elif counter > 0 and not checker:
-                continue
-            break
+        value, status = get_checked_value(PATTERNS['strings'], profile.last_name)
+        if status:
+            profile.last_name = value
+        else:
+            return print(value)
     elif choice == 'организация':
-        counter = 3
-        while counter > 0:
-            counter -= 1
-            if counter >= 2:
-                profile.organization = input('\nВведите новое значение: ')
-            else:
-                profile.organization = input('Введите новое значение: ')
-            checker = edited_data_checking(profile)
-            if counter == 0 and not checker:
-                return print('Вы истратили кол-во попыток для изменения данных!\n')
-            elif counter > 0 and not checker:
-                continue
-            break
+        profile.organization = input('\nВведите новое значение: ')
     elif choice == 'рабочий номер':
-        counter = 3
-        while counter > 0:
-            counter -= 1
-            if counter >= 2:
-                profile.work_number = input('\nВведите новое значение: ')
-            else:
-                profile.work_number = input('Введите новое значение: ')
-            checker = edited_data_checking(profile)
-            if counter == 0 and not checker:
-                return print('Вы истратили кол-во попыток для изменения данных!\n')
-            elif counter > 0 and not checker:
-                continue
-            break
+        value, status = get_checked_value(PATTERNS['numbers'], profile.work_number)
+        if status:
+            profile.work_number = value
+        else:
+            return print(value)
     elif choice == 'личный номер':
-        counter = 3
-        while counter > 0:
-            counter -= 1
-            if counter >= 2:
-                profile.number = input('\nВведите новое значение: ')
-            else:
-                profile.number = input('Введите новое значение: ')
-            checker = edited_data_checking(profile)
-            if counter == 0 and not checker:
-                return print('Вы истратили кол-во попыток для изменения данных!\n')
-            elif counter > 0 and not checker:
-                continue
-            break
+        value, status = get_checked_value(PATTERNS['numbers'], profile.number)
+        if status:
+            profile.number = value
+        else:
+            return print(value)
     else:
         print('\nУказан неверный вариант!')
 
@@ -215,7 +166,7 @@ def edit_profile() -> Any:
     return print(f'\nДанные изменены:\n{profile}\n')
 
 
-def to_find() -> dict | None:
+def find_profile() -> dict | None:
     """Функция описывающая логику для поиска записей."""
 
     profiles = get_profiles()
@@ -224,13 +175,13 @@ def to_find() -> dict | None:
 
     choice = input('\nПо каким данным будет производиться поиск (имя или личный номер): ').lower()
     if choice == 'имя':
-        context = Context(Name())
+        context = src.Context(src.Name())
         name = input('\nВведите имя для поиска: ')
         found = context.find(name)
         if isinstance(found, dict):
             return print(found['error'])
     elif choice == 'номер' or choice == 'личный номер':
-        context = Context(Number())
+        context = src.Context(src.Number())
         number = input('\nВведите номер для поиска: ')
         found = context.find(number)
         if isinstance(found, dict):

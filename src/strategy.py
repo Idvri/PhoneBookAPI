@@ -1,4 +1,3 @@
-import re
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -15,7 +14,7 @@ class Strategy(ABC):
 class Name(Strategy):
     """Класс для поиска по имени."""
 
-    PATTERN = re.compile(r'^[A-ZА-Я][a-zа-я]+$')
+    PATTERN = src.PATTERNS['strings']
 
     def find(self, data: str) -> Any:
         if not self.PATTERN.match(data):
@@ -33,7 +32,7 @@ class Name(Strategy):
 class Number(Strategy):
     """Класс для поиска по номеру."""
 
-    PATTERN = re.compile(r'^\d{11}$')
+    PATTERN = src.PATTERNS['numbers']
 
     def find(self, data: str) -> dict | None:
         if not self.PATTERN.match(data):

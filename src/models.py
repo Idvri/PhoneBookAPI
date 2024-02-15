@@ -1,5 +1,10 @@
 import re
 
+PATTERNS = {
+    'strings': re.compile(r'^[A-ZА-Я][a-zа-я]+$'),
+    'numbers': re.compile(r'^\d{11}$'),
+}
+
 
 class Profile:
 
@@ -25,18 +30,18 @@ class Profile:
     def validate(self) -> dict | bool:
         """Функция для валидации данных."""
 
-        pattern = re.compile(r'^[A-ZА-Я][a-zа-я]+$')
+        pattern = PATTERNS['strings']
         if not pattern.match(self.surname):
             error = '\nУказана неверная фамилия!\n'
             return {'status': False, 'error': error}
         elif not pattern.match(self.name):
-            error = '\nУказана неверное имя!\n'
+            error = '\nУказано неверное имя!\n'
             return {'status': False, 'error': error}
         elif not pattern.match(self.last_name):
-            error = '\nУказана неверное отчество!\n'
+            error = '\nУказано неверное отчество!\n'
             return {'status': False, 'error': error}
 
-        pattern = re.compile(r'^\d{11}$')
+        pattern = PATTERNS['numbers']
         if not pattern.match(self.work_number):
             error = '\nРабочий номер заполнен некорректно!\n'
             return {'status': False, 'error': error}
