@@ -116,9 +116,9 @@ def edit_profile() -> Any:
     pattern = PATTERNS['numbers']
     if not pattern.match(number):
         return print('\nУказан некорректный номер!\n')
-    profiles_list = [profile for profile in profiles if str(profile.number) == number]
-    if len(profiles_list) > 0:
-        profile = profiles_list[0]
+    profile_list = [profile for profile in profiles if str(profile.number) == number]
+    if len(profile_list) > 0:
+        profile = profile_list[0]
     else:
         return print('\nНет контактов с таким личным номером.\n')
 
